@@ -3,375 +3,2194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Netflix Content Analysis | SQL Analytics</title>
+
+<title>Netflix Content Analysis | SQL Data Analytics Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 :root{
-  --red:#e50914;--red2:#b20710;--bg:#050505;--panel:#111;--panel2:#181818;
-  --text:#f5f5f5;--muted:#aaa;--line:#2b2b2b;--glow:0 0 25px rgba(229,9,20,.22)
+    --red:#e50914;
+    --red2:#b20710;
+    --black:#050505;
+    --dark:#0b0b0b;
+    --card:#111;
+    --card2:#171717;
+    --border:#292929;
+    --white:#fff;
+    --muted:#a7a7a7;
+    --green:#35d07f;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;background:
-radial-gradient(circle at 85% 10%,rgba(229,9,20,.11),transparent 28%),
-radial-gradient(circle at 15% 90%,rgba(229,9,20,.06),transparent 25%);z-index:-1}
-a{text-decoration:none;color:inherit}
-button,input,select{font:inherit}
-button{cursor:pointer}
 
-.nav{
- position:fixed;top:0;left:0;right:0;height:70px;z-index:1000;
- display:flex;align-items:center;gap:28px;padding:0 5%;
- background:linear-gradient(180deg,#050505 0%,rgba(5,5,5,.88) 75%,transparent);
- backdrop-filter:blur(8px)
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    scroll-behavior:smooth;
 }
-.logo{font-size:34px;font-weight:950;letter-spacing:-3px;color:var(--red)}
-.navlinks{display:flex;gap:20px;align-items:center;flex:1}
-.navlinks a{color:#ddd;font-size:14px;font-weight:600;transition:.2s}
-.navlinks a:hover,.navlinks a.active{color:#fff}
-.navlinks a.active:after{content:"";display:block;height:2px;background:var(--red);margin-top:5px}
-.search{position:relative}
-.search input{width:210px;background:#111;border:1px solid #333;color:#fff;border-radius:5px;padding:9px 12px;outline:none}
-.search input:focus{border-color:var(--red);box-shadow:var(--glow)}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:
+        radial-gradient(circle at top right,rgba(229,9,20,.16),transparent 30%),
+        linear-gradient(180deg,#050505,#090909 50%,#050505);
+    color:var(--white);
+    overflow-x:hidden;
+}
+
+a{
+    text-decoration:none;
+    color:inherit;
+}
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:#050505;
+}
+
+::-webkit-scrollbar-thumb{
+    background:var(--red);
+    border-radius:20px;
+}
+
+/* NAVBAR */
+
+.navbar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:999;
+    height:72px;
+    padding:0 5%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(0,0,0,.88);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.logo{
+    font-size:26px;
+    font-weight:900;
+    color:var(--red);
+    letter-spacing:-1px;
+}
+
+.logo span{
+    color:white;
+}
+
+.nav-links{
+    display:flex;
+    gap:24px;
+    align-items:center;
+}
+
+.nav-links a{
+    color:#ddd;
+    font-size:14px;
+    transition:.3s;
+}
+
+.nav-links a:hover{
+    color:var(--red);
+}
+
+.nav-search{
+    background:#151515;
+    border:1px solid #292929;
+    padding:10px 14px;
+    border-radius:30px;
+    color:white;
+    outline:none;
+    width:190px;
+}
+
+.nav-search:focus{
+    border-color:var(--red);
+}
+
+/* HERO */
 
 .hero{
- min-height:650px;padding:150px 7% 80px;display:flex;align-items:center;position:relative;overflow:hidden;
- background:
- linear-gradient(90deg,#050505 0%,rgba(5,5,5,.94) 35%,rgba(5,5,5,.45) 70%,#050505 100%),
- linear-gradient(0deg,#050505 0%,transparent 25%);
+    min-height:720px;
+    padding:150px 6% 80px;
+    display:flex;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
 }
-.hero:after{content:"";position:absolute;right:-10%;top:60px;width:58%;height:520px;
-background:radial-gradient(ellipse,rgba(229,9,20,.25),transparent 65%);filter:blur(15px)}
-.hero-content{max-width:760px;position:relative;z-index:1}
-.kicker{color:#ddd;font-size:14px;letter-spacing:4px;text-transform:uppercase;font-weight:800}
-h1{font-size:clamp(48px,7vw,92px);line-height:.95;margin:15px 0;color:#fff;letter-spacing:-4px}
-h1 span{color:var(--red)}
-.hero p{max-width:670px;color:#c9c9c9;font-size:18px}
-.tags{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0}
-.tag{border:1px solid #3a3a3a;background:#151515;padding:6px 11px;border-radius:99px;color:#ddd;font-size:12px}
-.cta{display:flex;gap:12px}
-.btn{border:0;border-radius:5px;padding:12px 18px;font-weight:800;transition:.2s}
-.btn.red{background:var(--red);color:white}.btn.red:hover{background:#f6121d;transform:translateY(-2px)}
-.btn.dark{background:#262626;color:#fff}.btn.dark:hover{background:#333}
 
-main{max-width:1280px;margin:auto;padding:0 5% 80px}
-.section{padding:70px 0 10px}
-.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}
-.section h2{font-size:32px}.section h2:before{content:"";display:inline-block;width:5px;height:30px;background:var(--red);margin-right:10px;vertical-align:-4px;border-radius:3px}
-.section-head p{color:var(--muted);font-size:14px}
-
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
-.card{background:linear-gradient(145deg,#171717,#0d0d0d);border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:var(--glow);transition:.25s}
-.card:hover{transform:translateY(-4px);border-color:#55191c}
-.metric{font-size:32px;font-weight:900;color:#fff}.metric small{font-size:12px;color:var(--muted);font-weight:600}
-.card-title{color:#ddd;font-size:13px;margin-top:4px}.redtext{color:var(--red)}
-
-.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
-.panel{background:#101010;border:1px solid var(--line);border-radius:10px;padding:22px}
-.panel h3{margin-bottom:15px}
-.bar{height:11px;background:#252525;border-radius:99px;overflow:hidden;margin:7px 0 14px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red2),var(--red));border-radius:99px}
-.row{display:flex;justify-content:space-between;font-size:13px;color:#ccc}
-
-.schema{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:center}
-.table-box{background:#0d0d0d;border:1px solid #4a1a1c;border-radius:9px;overflow:hidden}
-.table-box strong{display:block;background:#260a0c;color:#ff5b62;padding:10px}
-.table-box ul{list-style:none;padding:10px}.table-box li{padding:5px;color:#bbb;font-size:13px;border-bottom:1px solid #202020}.table-box li:last-child{border:0}
-.relation{display:flex;justify-content:center;align-items:center;color:var(--red);font-size:25px}
-
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.filters input,.filters select{background:#111;border:1px solid #333;color:#ddd;padding:10px 12px;border-radius:6px;outline:none}
-.question-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.qcard{background:#111;border:1px solid #2c2c2c;border-radius:9px;padding:18px;transition:.2s;cursor:pointer}
-.qcard:hover,.qcard.selected{border-color:var(--red);box-shadow:var(--glow)}
-.qnum{display:inline-grid;place-items:center;width:31px;height:31px;border-radius:50%;background:var(--red);font-weight:900;font-size:12px;margin-bottom:10px}
-.qcard h4{font-size:16px}.qcard p{color:#999;font-size:12px;margin-top:6px}
-
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:20px;z-index:2000}
-.modal.show{display:flex}
-.modal-box{width:min(900px,100%);max-height:90vh;overflow:auto;background:#0d0d0d;border:1px solid #55191c;border-radius:12px;padding:25px;box-shadow:0 0 50px rgba(229,9,20,.25)}
-.modal-top{display:flex;justify-content:space-between;gap:15px;align-items:start}.close{background:#222;color:#fff;border:0;border-radius:5px;padding:7px 11px}
-pre{white-space:pre-wrap;word-break:break-word;background:#070707;border:1px solid #272727;border-left:3px solid var(--red);padding:17px;border-radius:7px;color:#e6e6e6;margin:15px 0;font-family:Consolas,monospace;font-size:13px}
-.answer{background:#16090a;border:1px solid #3b1618;padding:14px;border-radius:7px;color:#ddd}
-.answer b{color:#ff4d55}
-
-.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
-.insight{padding:22px;border-radius:10px;background:linear-gradient(145deg,#1a1a1a,#0e0e0e);border:1px solid #292929}
-.insight .icon{font-size:28px;color:var(--red);margin-bottom:10px}.insight h3{margin-bottom:6px}.insight p{color:#aaa;font-size:13px}
-
-.footer{border-top:1px solid #222;margin-top:70px;padding:35px 5%;text-align:center;color:#777}
-.footer b{color:var(--red)}
-
-.toast{position:fixed;right:20px;bottom:20px;background:#151515;border:1px solid #4b181a;padding:12px 16px;border-radius:7px;display:none;z-index:3000}
-.toast.show{display:block}
-
-@media(max-width:900px){
- .navlinks a:nth-child(n+4){display:none}.search input{width:130px}
- .grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.schema{grid-template-columns:1fr}.question-grid{grid-template-columns:repeat(2,1fr)}.insights{grid-template-columns:1fr 1fr}
+.hero:before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(90deg,#050505 0%,rgba(5,5,5,.88) 40%,rgba(5,5,5,.25) 100%),
+        radial-gradient(circle at 75% 40%,rgba(229,9,20,.32),transparent 35%);
+    pointer-events:none;
 }
-@media(max-width:600px){
- .nav{height:60px;padding:0 4%;gap:15px}.logo{font-size:27px}.navlinks{display:none}.search{margin-left:auto}
- .hero{min-height:600px;padding:120px 5% 60px}h1{font-size:50px;letter-spacing:-2px}.hero p{font-size:15px}
- main{padding:0 4% 50px}.grid,.question-grid,.insights{grid-template-columns:1fr}.section{padding-top:50px}
+
+.hero-content{
+    position:relative;
+    z-index:2;
+    max-width:900px;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 14px;
+    border-radius:30px;
+    background:rgba(229,9,20,.12);
+    border:1px solid rgba(229,9,20,.45);
+    color:#ff6670;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:22px;
+}
+
+.hero h1{
+    font-size:clamp(42px,7vw,82px);
+    line-height:.95;
+    letter-spacing:-4px;
+    margin-bottom:25px;
+}
+
+.hero h1 span{
+    color:var(--red);
+}
+
+.hero p{
+    max-width:720px;
+    color:#bbb;
+    line-height:1.8;
+    font-size:17px;
+}
+
+.hero-buttons{
+    display:flex;
+    gap:14px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    padding:13px 21px;
+    border-radius:8px;
+    font-weight:bold;
+    font-size:14px;
+    transition:.3s;
+}
+
+.btn-primary{
+    background:var(--red);
+}
+
+.btn-primary:hover{
+    background:#ff1d28;
+    transform:translateY(-2px);
+}
+
+.btn-secondary{
+    border:1px solid #444;
+    background:#151515;
+}
+
+.btn-secondary:hover{
+    border-color:var(--red);
+}
+
+/* MAIN */
+
+.container{
+    width:min(1400px,92%);
+    margin:auto;
+}
+
+.section{
+    padding:85px 0;
+}
+
+.section-title{
+    font-size:34px;
+    margin-bottom:10px;
+}
+
+.section-title span{
+    color:var(--red);
+}
+
+.section-subtitle{
+    color:var(--muted);
+    margin-bottom:35px;
+}
+
+/* KPI */
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:16px;
+}
+
+.kpi{
+    background:linear-gradient(145deg,#161616,#0d0d0d);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px;
+    position:relative;
+    overflow:hidden;
+    transition:.3s;
+}
+
+.kpi:hover{
+    transform:translateY(-5px);
+    border-color:rgba(229,9,20,.6);
+    box-shadow:0 15px 40px rgba(229,9,20,.12);
+}
+
+.kpi:after{
+    content:"";
+    position:absolute;
+    width:70px;
+    height:70px;
+    background:var(--red);
+    filter:blur(55px);
+    opacity:.2;
+    right:-25px;
+    bottom:-25px;
+}
+
+.kpi-icon{
+    font-size:24px;
+    margin-bottom:15px;
+}
+
+.kpi-value{
+    font-size:30px;
+    font-weight:900;
+}
+
+.kpi-label{
+    color:#999;
+    font-size:12px;
+    margin-top:7px;
+}
+
+/* DASHBOARD */
+
+.dashboard-head{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.live{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#aaa;
+    font-size:13px;
+}
+
+.live-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#35d07f;
+    box-shadow:0 0 12px #35d07f;
+}
+
+.chart-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+}
+
+.chart-card{
+    background:linear-gradient(145deg,#131313,#0b0b0b);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:24px;
+    min-height:390px;
+}
+
+.chart-card.large{
+    grid-column:span 2;
+}
+
+.chart-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.chart-header h3{
+    font-size:18px;
+}
+
+.chart-header span{
+    color:#777;
+    font-size:12px;
+}
+
+.chart-box{
+    height:300px;
+    position:relative;
+}
+
+/* SELECTED SLICE */
+
+.selected-card{
+    margin-top:20px;
+    padding:24px;
+    background:
+        linear-gradient(135deg,rgba(229,9,20,.16),rgba(20,20,20,.95));
+    border:1px solid rgba(229,9,20,.4);
+    border-radius:18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+}
+
+.selected-card small{
+    color:#999;
+}
+
+.selected-card h2{
+    margin-top:6px;
+}
+
+.selected-number{
+    font-size:40px;
+    font-weight:900;
+    color:var(--red);
+}
+
+/* OVERVIEW */
+
+.overview-grid{
+    display:grid;
+    grid-template-columns:1.2fr .8fr;
+    gap:25px;
+}
+
+.info-card{
+    background:#111;
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:28px;
+}
+
+.info-card h3{
+    margin-bottom:15px;
+}
+
+.info-card p{
+    color:#aaa;
+    line-height:1.8;
+}
+
+.highlight-list{
+    display:grid;
+    gap:12px;
+}
+
+.highlight{
+    display:flex;
+    justify-content:space-between;
+    padding:14px;
+    border-radius:10px;
+    background:#181818;
+}
+
+.highlight span:first-child{
+    color:#aaa;
+}
+
+.highlight strong{
+    color:white;
+}
+
+/* SCHEMA */
+
+.schema-table{
+    width:100%;
+    border-collapse:collapse;
+    overflow:hidden;
+    border-radius:15px;
+}
+
+.schema-table th,
+.schema-table td{
+    padding:15px;
+    border-bottom:1px solid #262626;
+    text-align:left;
+}
+
+.schema-table th{
+    background:var(--red);
+}
+
+.schema-table td{
+    color:#bbb;
+    background:#111;
+}
+
+.schema-table tr:hover td{
+    background:#171717;
+}
+
+/* QUESTIONS */
+
+.question-tools{
+    display:flex;
+    gap:12px;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+}
+
+.question-search{
+    flex:1;
+    min-width:240px;
+    background:#121212;
+    color:white;
+    border:1px solid #303030;
+    border-radius:10px;
+    padding:14px;
+    outline:none;
+}
+
+.question-search:focus{
+    border-color:var(--red);
+}
+
+.filter-btn{
+    padding:12px 18px;
+    background:#151515;
+    color:#bbb;
+    border:1px solid #333;
+    border-radius:9px;
+    cursor:pointer;
+}
+
+.filter-btn.active,
+.filter-btn:hover{
+    background:var(--red);
+    color:white;
+    border-color:var(--red);
+}
+
+.question-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+}
+
+.question{
+    background:#111;
+    border:1px solid #292929;
+    border-radius:15px;
+    padding:20px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.question:hover{
+    transform:translateY(-5px);
+    border-color:var(--red);
+    box-shadow:0 15px 35px rgba(229,9,20,.1);
+}
+
+.question-number{
+    color:var(--red);
+    font-weight:bold;
+    font-size:13px;
+}
+
+.question h3{
+    margin-top:12px;
+    line-height:1.4;
+    font-size:16px;
+}
+
+.question p{
+    color:#777;
+    margin-top:10px;
+    font-size:12px;
+}
+
+/* INSIGHTS */
+
+.insight-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+}
+
+.insight{
+    background:#111;
+    border:1px solid #292929;
+    border-radius:16px;
+    padding:25px;
+}
+
+.insight-icon{
+    font-size:30px;
+    margin-bottom:15px;
+}
+
+.insight h3{
+    margin-bottom:10px;
+}
+
+.insight p{
+    color:#999;
+    line-height:1.7;
+}
+
+/* FOOTER */
+
+footer{
+    padding:60px 5%;
+    text-align:center;
+    border-top:1px solid #222;
+    background:#030303;
+}
+
+footer .logo{
+    margin-bottom:15px;
+}
+
+footer p{
+    color:#777;
+    font-size:13px;
+}
+
+/* MODAL */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    background:rgba(0,0,0,.82);
+    backdrop-filter:blur(8px);
+    padding:30px;
+    overflow:auto;
+}
+
+.modal.active{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal-box{
+    width:min(950px,100%);
+    background:#101010;
+    border:1px solid #333;
+    border-radius:18px;
+    padding:28px;
+    position:relative;
+}
+
+.modal-close{
+    position:absolute;
+    top:15px;
+    right:18px;
+    font-size:25px;
+    color:#aaa;
+    cursor:pointer;
+}
+
+.modal-close:hover{
+    color:white;
+}
+
+.sql{
+    margin-top:20px;
+    background:#050505;
+    border:1px solid #292929;
+    border-radius:12px;
+    padding:20px;
+    overflow:auto;
+}
+
+.sql pre{
+    color:#ddd;
+    line-height:1.6;
+    white-space:pre-wrap;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1100px){
+    .kpi-grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .question-grid,
+    .insight-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:800px){
+    .nav-links{
+        display:none;
+    }
+
+    .navbar{
+        padding:0 20px;
+    }
+
+    .nav-search{
+        width:140px;
+    }
+
+    .hero{
+        min-height:650px;
+        padding:130px 5% 70px;
+    }
+
+    .hero h1{
+        letter-spacing:-2px;
+    }
+
+    .overview-grid,
+    .chart-grid{
+        grid-template-columns:1fr;
+    }
+
+    .chart-card.large{
+        grid-column:span 1;
+    }
+
+    .kpi-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .question-grid,
+    .insight-grid{
+        grid-template-columns:1fr;
+    }
+
+    .selected-card{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+}
+
+@media(max-width:500px){
+    .kpi-grid{
+        grid-template-columns:1fr;
+    }
+
+    .section{
+        padding:60px 0;
+    }
+
+    .section-title{
+        font-size:28px;
+    }
+
+    .hero p{
+        font-size:15px;
+    }
 }
 </style>
 </head>
+
 <body>
 
-<nav class="nav">
-  <a class="logo" href="#home">NETFLIX</a>
-  <div class="navlinks">
-    <a class="active" href="#home">Home</a>
-    <a href="#dataset">Dataset</a>
-    <a href="#schema">Schema</a>
-    <a href="#questions">Questions</a>
-    <a href="#insights">Insights</a>
-  </div>
-  <div class="search"><input id="globalSearch" type="search" placeholder="Search project..."></div>
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar">
+
+    <a href="#home" class="logo">
+        NETFLIX<span>.</span>
+    </a>
+
+    <div class="nav-links">
+        <a href="#home">Home</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#schema">Schema</a>
+        <a href="#questions">SQL</a>
+        <a href="#insights">Insights</a>
+    </div>
+
+    <input
+        type="text"
+        class="nav-search"
+        id="globalSearch"
+        placeholder="Search..."
+    >
+
 </nav>
 
+
+<!-- ================= HERO ================= -->
+
 <header class="hero" id="home">
-  <div class="hero-content">
-    <div class="kicker">SQL Data Analytics Project</div>
-    <h1>NETFLIX<br><span>CONTENT</span><br>ANALYSIS</h1>
-    <p>Explore Netflix movies and TV shows through PostgreSQL. Analyze genres, ratings, countries, directors, actors, release trends and more through 15 practical business questions.</p>
-    <div class="tags">
-      <span class="tag">PostgreSQL</span><span class="tag">SQL</span><span class="tag">Data Analytics</span>
-      <span class="tag">15 Business Questions</span><span class="tag">Netflix Dataset</span>
+
+    <div class="hero-content">
+
+        <div class="badge">
+            ● SQL DATA ANALYTICS PROJECT
+        </div>
+
+        <h1>
+            Netflix <span>Content</span><br>
+            Analysis
+        </h1>
+
+        <p>
+            An interactive SQL-powered data analytics project analyzing
+            8,807 Netflix titles using PostgreSQL. Explore content types,
+            ratings, countries, genres, release trends and business
+            questions through an interactive dashboard.
+        </p>
+
+        <div class="hero-buttons">
+
+            <a href="#dashboard" class="btn btn-primary">
+                Explore Dashboard →
+            </a>
+
+            <a href="#questions" class="btn btn-secondary">
+                View SQL Problems
+            </a>
+
+        </div>
+
     </div>
-    <div class="cta">
-      <a class="btn red" href="#questions">Explore Questions</a>
-      <a class="btn dark" href="#schema">View Schema</a>
-    </div>
-  </div>
+
 </header>
 
-<main>
-<section class="section" id="dataset">
-  <div class="section-head"><div><h2>Project Overview</h2><p>From raw titles to analytical insights.</p></div></div>
-  <div class="grid">
-    <div class="card"><div class="metric">15</div><div class="card-title">Business Questions</div></div>
-    <div class="card"><div class="metric">1</div><div class="card-title">Main Netflix Titles Table</div></div>
-    <div class="card"><div class="metric redtext">SQL</div><div class="card-title">Analysis Language</div></div>
-    <div class="card"><div class="metric">PG</div><div class="card-title">PostgreSQL Database</div></div>
-  </div>
-  <br>
-  <div class="layout">
-    <div class="panel">
-      <h3>🎯 Objectives</h3>
-      <div class="row"><span>Content distribution</span><b>Movies / TV Shows</b></div>
-      <div class="bar"><i style="width:78%"></i></div>
-      <div class="row"><span>Geographical analysis</span><b>Countries</b></div>
-      <div class="bar"><i style="width:64%"></i></div>
-      <div class="row"><span>People analysis</span><b>Directors / Actors</b></div>
-      <div class="bar"><i style="width:58%"></i></div>
-      <div class="row"><span>Time analysis</span><b>Release / Added dates</b></div>
-      <div class="bar"><i style="width:71%"></i></div>
-    </div>
-    <div class="panel">
-      <h3>🛠 Tools</h3>
-      <p style="color:#aaa">PostgreSQL • pgAdmin • SQL • Aggregate Functions • CTEs • Window Functions • String & Array Functions • Date Functions • CASE logic</p>
-      <br>
-      <h3>📌 Project Type</h3>
-      <p style="color:#aaa">Exploratory SQL data analysis focused on practical business questions and portfolio-ready analytical thinking.</p>
-    </div>
-  </div>
-</section>
 
-<section class="section" id="schema">
-  <div class="section-head"><div><h2>Database Schema</h2><p>Core structure used by the analysis.</p></div></div>
-  <div class="schema">
-    <div class="table-box">
-      <strong>netflix_titles</strong>
-      <ul><li>show_id — Primary Key</li><li>type</li><li>title</li><li>director</li><li>cast</li><li>country</li><li>date_added</li><li>release_year</li><li>rating</li><li>duration</li><li>listed_in</li><li>description</li></ul>
-    </div>
-    <div class="relation">⟷</div>
-    <div class="panel">
-      <h3>🔄 Analysis Flow</h3>
-      <p style="color:#aaa">Netflix Dataset</p>
-      <div class="bar"><i style="width:100%"></i></div>
-      <p style="color:#aaa">PostgreSQL Table</p>
-      <div class="bar"><i style="width:82%"></i></div>
-      <p style="color:#aaa">SQL Queries</p>
-      <div class="bar"><i style="width:64%"></i></div>
-      <p style="color:#aaa">Business Insights</p>
-    </div>
-  </div>
-</section>
+<main class="container">
 
-<section class="section" id="questions">
-  <div class="section-head">
-    <div><h2>15 Business Questions</h2><p>Click any card to open the SQL query and answer logic.</p></div>
-  </div>
-  <div class="filters">
-    <input id="qSearch" type="search" placeholder="Search questions...">
-    <select id="qType"><option value="all">All Questions</option><option value="basic">Basic</option><option value="advanced">Advanced</option></select>
-  </div>
-  <div class="question-grid" id="questionGrid"></div>
-</section>
 
-<section class="section" id="insights">
-  <div class="section-head"><div><h2>Key Analytical Areas</h2><p>What this project helps you investigate.</p></div></div>
-  <div class="insights">
-    <div class="insight"><div class="icon">🎬</div><h3>Content Trends</h3><p>Compare Movies and TV Shows and examine release-year patterns.</p></div>
-    <div class="insight"><div class="icon">⭐</div><h3>Ratings</h3><p>Explore rating distributions and rating-related content patterns.</p></div>
-    <div class="insight"><div class="icon">🌍</div><h3>Countries</h3><p>Analyze country associations and identify countries with high content counts.</p></div>
-    <div class="insight"><div class="icon">🎥</div><h3>Directors</h3><p>Find content associated with selected directors and investigate missing director data.</p></div>
-    <div class="insight"><div class="icon">🎭</div><h3>Actors</h3><p>Explore actor appearances and identify frequently appearing actors in Indian content.</p></div>
-    <div class="insight"><div class="icon">📅</div><h3>Time Analysis</h3><p>Use release years and date-added fields to study Netflix content timing.</p></div>
-  </div>
-</section>
+<!-- ================= PROJECT OVERVIEW ================= -->
 
 <section class="section">
-  <div class="panel">
-    <h2 style="margin-bottom:10px">👨‍💻 Portfolio Project</h2>
-    <p style="color:#aaa">Netflix Content Analysis • PostgreSQL • SQL • Data Analytics</p>
-    <br>
-    <button class="btn red" onclick="showToast('Project interface ready!')">Run Demo</button>
-  </div>
+
+    <h2 class="section-title">
+        Project <span>Overview</span>
+    </h2>
+
+    <p class="section-subtitle">
+        Netflix Titles dataset analyzed with SQL and presented through
+        an interactive business intelligence dashboard.
+    </p>
+
+    <div class="overview-grid">
+
+        <div class="info-card">
+
+            <h3>🎯 Project Objective</h3>
+
+            <p>
+                The objective of this project is to analyze Netflix's
+                content catalog and answer practical business questions
+                related to movies, TV shows, ratings, countries, genres,
+                directors, actors and release trends.
+            </p>
+
+            <br>
+
+            <p>
+                The project demonstrates SQL data exploration,
+                aggregation, filtering, string manipulation, CTEs,
+                window functions and analytical thinking.
+            </p>
+
+        </div>
+
+        <div class="info-card">
+
+            <h3>📊 Dataset Snapshot</h3>
+
+            <div class="highlight-list">
+
+                <div class="highlight">
+                    <span>Total Titles</span>
+                    <strong>8,807</strong>
+                </div>
+
+                <div class="highlight">
+                    <span>Movies</span>
+                    <strong>6,131</strong>
+                </div>
+
+                <div class="highlight">
+                    <span>TV Shows</span>
+                    <strong>2,676</strong>
+                </div>
+
+                <div class="highlight">
+                    <span>India Associated Titles</span>
+                    <strong>1,046</strong>
+                </div>
+
+                <div class="highlight">
+                    <span>Missing Directors</span>
+                    <strong>2,634</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </section>
+
+
+<!-- ================= KPI SECTION ================= -->
+
+<section class="section" id="dashboard">
+
+    <div class="dashboard-head">
+
+        <div>
+            <h2 class="section-title">
+                Netflix <span>Dashboard</span>
+            </h2>
+
+            <p class="section-subtitle">
+                Dashboard generated directly from the uploaded Netflix dataset.
+            </p>
+        </div>
+
+        <div class="live">
+            <span class="live-dot"></span>
+            Dataset Loaded
+        </div>
+
+    </div>
+
+
+    <div class="kpi-grid">
+
+        <div class="kpi">
+            <div class="kpi-icon">🎬</div>
+            <div class="kpi-value">8,807</div>
+            <div class="kpi-label">TOTAL TITLES</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-icon">🍿</div>
+            <div class="kpi-value">6,131</div>
+            <div class="kpi-label">MOVIES</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-icon">📺</div>
+            <div class="kpi-value">2,676</div>
+            <div class="kpi-label">TV SHOWS</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-icon">⭐</div>
+            <div class="kpi-value">16</div>
+            <div class="kpi-label">RATING VALUES</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-icon">🌎</div>
+            <div class="kpi-value">123</div>
+            <div class="kpi-label">COUNTRY ENTRIES</div>
+        </div>
+
+        <div class="kpi">
+            <div class="kpi-icon">📅</div>
+            <div class="kpi-value">74</div>
+            <div class="kpi-label">RELEASE YEARS</div>
+        </div>
+
+    </div>
+
+
+    <!-- ================= CHARTS ================= -->
+
+    <div class="chart-grid" style="margin-top:25px;">
+
+        <!-- PIE -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>🎬 Movies vs TV Shows</h3>
+
+                <span>Click a slice</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="typeChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- RATINGS -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>⭐ Content by Rating</h3>
+
+                <span>Top ratings</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="ratingChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- COUNTRIES -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>🌎 Top Countries</h3>
+
+                <span>Associated titles</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="countryChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- GENRES -->
+
+        <div class="chart-card">
+
+            <div class="chart-header">
+
+                <h3>🎭 Top Genres</h3>
+
+                <span>Content categories</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="genreChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- RELEASE TREND -->
+
+        <div class="chart-card large">
+
+            <div class="chart-header">
+
+                <h3>📈 Content by Release Year</h3>
+
+                <span>Historical release trend</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="yearChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- INDIA -->
+
+        <div class="chart-card large">
+
+            <div class="chart-header">
+
+                <h3>🇮🇳 India Content Release Trend</h3>
+
+                <span>India-associated titles</span>
+
+            </div>
+
+            <div class="chart-box">
+                <canvas id="indiaChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- CLICKABLE PIE DETAIL -->
+
+    <div class="selected-card">
+
+        <div>
+
+            <small>SELECTED DASHBOARD SLICE</small>
+
+            <h2 id="selectedTitle">
+                Movies
+            </h2>
+
+            <p id="selectedDescription" style="color:#aaa;margin-top:8px;">
+                Click a doughnut slice to inspect its exact value.
+            </p>
+
+        </div>
+
+        <div class="selected-number" id="selectedNumber">
+            6,131
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= SCHEMA ================= -->
+
+<section class="section" id="schema">
+
+    <h2 class="section-title">
+        Database <span>Schema</span>
+    </h2>
+
+    <p class="section-subtitle">
+        Netflix table structure used for SQL analysis.
+    </p>
+
+    <div style="overflow:auto;">
+
+        <table class="schema-table">
+
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Data Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>show_id</td>
+                    <td>VARCHAR</td>
+                    <td>Unique content identifier</td>
+                </tr>
+
+                <tr>
+                    <td>type</td>
+                    <td>VARCHAR</td>
+                    <td>Movie or TV Show</td>
+                </tr>
+
+                <tr>
+                    <td>title</td>
+                    <td>VARCHAR</td>
+                    <td>Content title</td>
+                </tr>
+
+                <tr>
+                    <td>director</td>
+                    <td>VARCHAR</td>
+                    <td>Director information</td>
+                </tr>
+
+                <tr>
+                    <td>cast</td>
+                    <td>VARCHAR</td>
+                    <td>Actors and performers</td>
+                </tr>
+
+                <tr>
+                    <td>country</td>
+                    <td>VARCHAR</td>
+                    <td>Associated countries</td>
+                </tr>
+
+                <tr>
+                    <td>date_added</td>
+                    <td>VARCHAR</td>
+                    <td>Date added to Netflix</td>
+                </tr>
+
+                <tr>
+                    <td>release_year</td>
+                    <td>INT</td>
+                    <td>Original release year</td>
+                </tr>
+
+                <tr>
+                    <td>rating</td>
+                    <td>VARCHAR</td>
+                    <td>Content rating</td>
+                </tr>
+
+                <tr>
+                    <td>duration</td>
+                    <td>VARCHAR</td>
+                    <td>Movie duration or TV seasons</td>
+                </tr>
+
+                <tr>
+                    <td>listed_in</td>
+                    <td>VARCHAR</td>
+                    <td>Genres/categories</td>
+                </tr>
+
+                <tr>
+                    <td>description</td>
+                    <td>VARCHAR</td>
+                    <td>Content description</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- ================= QUESTIONS ================= -->
+
+<section class="section" id="questions">
+
+    <h2 class="section-title">
+        15 Business <span>Questions</span>
+    </h2>
+
+    <p class="section-subtitle">
+        Click any question to view its PostgreSQL solution.
+    </p>
+
+    <div class="question-tools">
+
+        <input
+            type="text"
+            id="questionSearch"
+            class="question-search"
+            placeholder="Search business questions..."
+        >
+
+        <button class="filter-btn active" data-filter="all">
+            All
+        </button>
+
+        <button class="filter-btn" data-filter="basic">
+            Basic
+        </button>
+
+        <button class="filter-btn" data-filter="advanced">
+            Advanced
+        </button>
+
+    </div>
+
+    <div class="question-grid" id="questionGrid"></div>
+
+</section>
+
+
+<!-- ================= INSIGHTS ================= -->
+
+<section class="section" id="insights">
+
+    <h2 class="section-title">
+        Key <span>Insights</span>
+    </h2>
+
+    <p class="section-subtitle">
+        Important observations generated from the uploaded dataset.
+    </p>
+
+    <div class="insight-grid">
+
+        <div class="insight">
+            <div class="insight-icon">🎬</div>
+            <h3>Movies Dominate</h3>
+            <p>
+                Movies account for 6,131 titles, while TV Shows account
+                for 2,676 titles in the dataset.
+            </p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-icon">🌎</div>
+            <h3>United States Leads</h3>
+            <p>
+                The United States is associated with 3,690 titles,
+                making it the largest country entry in the dataset.
+            </p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-icon">🇮🇳</div>
+            <h3>Strong India Presence</h3>
+            <p>
+                India is associated with 1,046 Netflix titles in the
+                dataset.
+            </p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-icon">🎭</div>
+            <h3>International Movies</h3>
+            <p>
+                International Movies is the most frequent genre/category
+                with 2,752 associated titles.
+            </p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-icon">📈</div>
+            <h3>Major Growth Period</h3>
+            <p>
+                The dataset shows a strong increase in release-year
+                records during the 2015–2020 period.
+            </p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-icon">🎥</div>
+            <h3>Missing Director Data</h3>
+            <p>
+                2,634 records have missing director information,
+                highlighting a notable data-quality consideration.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
 </main>
 
-<footer class="footer">
-  <p><b>NETFLIX CONTENT ANALYSIS</b> • SQL Data Analytics Project</p>
-  <p>Built for learning, portfolio presentation and business-question exploration.</p>
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <div class="logo">
+        NETFLIX<span>.</span>
+    </div>
+
+    <p>
+        Netflix Content Analysis — SQL Data Analytics Project
+    </p>
+
+    <p style="margin-top:8px;">
+        PostgreSQL • SQL • Data Analytics • Interactive Dashboard
+    </p>
+
+    <p style="margin-top:18px;">
+        Designed & Developed by <strong>Manish Kashyap</strong>
+    </p>
+
 </footer>
 
-<div class="modal" id="modal">
- <div class="modal-box">
-   <div class="modal-top"><div><div class="kicker" id="modalType"></div><h2 id="modalTitle"></h2></div><button class="close" onclick="closeModal()">✕</button></div>
-   <p id="modalDesc" style="color:#aaa;margin-top:8px"></p>
-   <h3 style="margin-top:20px">SQL Query</h3>
-   <pre id="modalSql"></pre>
-   <div class="answer"><b>Answer / Analysis:</b><br><span id="modalAnswer"></span></div>
- </div>
+
+<!-- ================= SQL MODAL ================= -->
+
+<div class="modal" id="sqlModal">
+
+    <div class="modal-box">
+
+        <span class="modal-close" onclick="closeModal()">×</span>
+
+        <div class="question-number" id="modalNumber"></div>
+
+        <h2 id="modalTitle" style="margin-top:8px;"></h2>
+
+        <div class="sql">
+
+            <pre id="modalSQL"></pre>
+
+        </div>
+
+    </div>
+
 </div>
-<div class="toast" id="toast"></div>
+
 
 <script>
+
+/* =========================================================
+   REAL DATA FROM netflix_titles.csv
+========================================================= */
+
+const netflixData = {
+
+    type:{
+        "Movie":6131,
+        "TV Show":2676
+    },
+
+    ratings:{
+        "TV-MA":3207,
+        "TV-14":2160,
+        "TV-PG":863,
+        "R":799,
+        "PG-13":490,
+        "TV-Y7":334,
+        "TV-Y":307,
+        "PG":287,
+        "TV-G":220,
+        "NR":80
+    },
+
+    countries:{
+        "United States":3690,
+        "India":1046,
+        "United Kingdom":806,
+        "Canada":445,
+        "France":393,
+        "Japan":318,
+        "Spain":232,
+        "South Korea":231,
+        "Germany":226,
+        "Mexico":169
+    },
+
+    genres:{
+        "International Movies":2752,
+        "Dramas":2427,
+        "Comedies":1674,
+        "International TV Shows":1351,
+        "Documentaries":869,
+        "Action & Adventure":859,
+        "TV Dramas":763,
+        "Independent Movies":756,
+        "Children & Family Movies":641,
+        "Romantic Movies":616
+    },
+
+    years:{
+        2008:136,
+        2009:152,
+        2010:194,
+        2011:185,
+        2012:237,
+        2013:288,
+        2014:352,
+        2015:560,
+        2016:902,
+        2017:1032,
+        2018:1147,
+        2019:1030,
+        2020:953,
+        2021:592
+    },
+
+    indiaYears:{
+        2010:41,
+        2012:41,
+        2013:58,
+        2014:56,
+        2015:70,
+        2016:80,
+        2017:111,
+        2018:101,
+        2019:93,
+        2020:77
+    }
+
+};
+
+
+/* =========================================================
+   CHART DEFAULTS
+========================================================= */
+
+Chart.defaults.color="#aaa";
+Chart.defaults.borderColor="rgba(255,255,255,.08)";
+Chart.defaults.font.family="Arial";
+
+
+/* =========================================================
+   HELPER
+========================================================= */
+
+function values(obj){
+    return Object.values(obj);
+}
+
+function keys(obj){
+    return Object.keys(obj);
+}
+
+
+/* =========================================================
+   MOVIE VS TV SHOW DOUGHNUT
+========================================================= */
+
+const typeChart = new Chart(
+    document.getElementById("typeChart"),
+    {
+        type:"doughnut",
+
+        data:{
+            labels:keys(netflixData.type),
+
+            datasets:[{
+                data:values(netflixData.type),
+
+                backgroundColor:[
+                    "#e50914",
+                    "#555"
+                ],
+
+                borderColor:"#111",
+                borderWidth:4,
+
+                hoverOffset:15
+            }]
+        },
+
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+
+            cutout:"65%",
+
+            plugins:{
+                legend:{
+                    position:"bottom",
+                    labels:{
+                        padding:20,
+                        usePointStyle:true
+                    }
+                },
+
+                tooltip:{
+                    callbacks:{
+                        label:function(context){
+
+                            const total=6131+2676;
+
+                            const value=context.raw;
+
+                            const percentage=
+                                ((value/total)*100).toFixed(1);
+
+                            return ` ${context.label}: ${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+
+            onClick:function(event,elements){
+
+                if(!elements.length) return;
+
+                const index=elements[0].index;
+
+                const label=typeChart.data.labels[index];
+
+                const value=typeChart.data.datasets[0].data[index];
+
+                const total=6131+2676;
+
+                const percentage=((value/total)*100).toFixed(1);
+
+                document.getElementById("selectedTitle").textContent=label;
+
+                document.getElementById("selectedNumber").textContent=
+                    value.toLocaleString();
+
+                document.getElementById("selectedDescription").textContent=
+                    `${percentage}% of all Netflix titles in this dataset.`;
+
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   RATING CHART
+========================================================= */
+
+new Chart(
+    document.getElementById("ratingChart"),
+    {
+        type:"bar",
+
+        data:{
+            labels:keys(netflixData.ratings),
+
+            datasets:[{
+                label:"Titles",
+                data:values(netflixData.ratings),
+                backgroundColor:"#e50914",
+                borderRadius:6
+            }]
+        },
+
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+
+            plugins:{
+                legend:{
+                    display:false
+                }
+            },
+
+            scales:{
+                x:{
+                    grid:{
+                        display:false
+                    }
+                },
+
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   COUNTRY CHART
+========================================================= */
+
+new Chart(
+    document.getElementById("countryChart"),
+    {
+        type:"bar",
+
+        data:{
+            labels:keys(netflixData.countries),
+
+            datasets:[{
+                label:"Titles",
+                data:values(netflixData.countries),
+                backgroundColor:"#e50914",
+                borderRadius:6
+            }]
+        },
+
+        options:{
+            indexAxis:"y",
+
+            responsive:true,
+            maintainAspectRatio:false,
+
+            plugins:{
+                legend:{
+                    display:false
+                }
+            },
+
+            scales:{
+                x:{
+                    beginAtZero:true
+                },
+
+                y:{
+                    grid:{
+                        display:false
+                    }
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   GENRE CHART
+========================================================= */
+
+new Chart(
+    document.getElementById("genreChart"),
+    {
+        type:"bar",
+
+        data:{
+            labels:keys(netflixData.genres),
+
+            datasets:[{
+                label:"Titles",
+                data:values(netflixData.genres),
+                backgroundColor:"#b20710",
+                borderRadius:6
+            }]
+        },
+
+        options:{
+            indexAxis:"y",
+
+            responsive:true,
+            maintainAspectRatio:false,
+
+            plugins:{
+                legend:{
+                    display:false
+                }
+            },
+
+            scales:{
+                x:{
+                    beginAtZero:true
+                },
+
+                y:{
+                    grid:{
+                        display:false
+                    }
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   RELEASE YEAR CHART
+========================================================= */
+
+new Chart(
+    document.getElementById("yearChart"),
+    {
+        type:"line",
+
+        data:{
+            labels:keys(netflixData.years),
+
+            datasets:[{
+
+                label:"Netflix Titles",
+
+                data:values(netflixData.years),
+
+                borderColor:"#e50914",
+
+                backgroundColor:"rgba(229,9,20,.12)",
+
+                fill:true,
+
+                tension:.35,
+
+                pointRadius:3,
+
+                pointHoverRadius:7
+            }]
+        },
+
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+
+            plugins:{
+                legend:{
+                    display:false
+                }
+            },
+
+            scales:{
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   INDIA CHART
+========================================================= */
+
+new Chart(
+    document.getElementById("indiaChart"),
+    {
+        type:"line",
+
+        data:{
+            labels:keys(netflixData.indiaYears),
+
+            datasets:[{
+
+                label:"India Associated Titles",
+
+                data:values(netflixData.indiaYears),
+
+                borderColor:"#ff3b30",
+
+                backgroundColor:"rgba(229,9,20,.15)",
+
+                fill:true,
+
+                tension:.35,
+
+                pointRadius:5,
+
+                pointHoverRadius:8
+            }]
+        },
+
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+
+            plugins:{
+                legend:{
+                    display:false
+                }
+            },
+
+            scales:{
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    }
+);
+
+
+/* =========================================================
+   15 SQL BUSINESS QUESTIONS
+========================================================= */
+
 const questions=[
-{n:1,t:"basic",title:"Fiction Books",desc:"Retrieve all books belonging to the Fiction genre.",sql:`SELECT title, release_year, rating
-FROM netflix_titles
+
+{
+n:1,
+level:"basic",
+title:"Count Movies vs TV Shows",
+sql:`SELECT
+    type,
+    COUNT(*) AS total_content
+FROM Netflix
+GROUP BY type
+ORDER BY total_content DESC;`
+},
+
+{
+n:2,
+level:"basic",
+title:"Most Common Rating for Movies and TV Shows",
+sql:`SELECT
+    type,
+    rating,
+    COUNT(*) AS total_content
+FROM Netflix
+GROUP BY type, rating
+ORDER BY type, total_content DESC;`
+},
+
+{
+n:3,
+level:"basic",
+title:"Movies Released in 2020",
+sql:`SELECT
+    title,
+    release_year
+FROM Netflix
 WHERE type = 'Movie'
-  AND listed_in ILIKE '%Fiction%';`,ans:"Returns Netflix movie titles classified with a Fiction-related category. The output can be used to inspect titles, release years and ratings."},
-{n:2,t:"basic",title:"TV Shows After 2015",desc:"Find TV shows released after 2015.",sql:`SELECT title, release_year
-FROM netflix_titles
-WHERE type = 'TV Show'
-  AND release_year > 2015
-ORDER BY release_year DESC;`,ans:"Returns TV shows whose release year is later than 2015, sorted from newest release year to oldest."},
-{n:3,t:"basic",title:"Top Rated Content",desc:"Identify highly rated content from the rating field.",sql:`SELECT title, rating
-FROM netflix_titles
-WHERE rating IS NOT NULL
-ORDER BY rating DESC
-LIMIT 10;`,ans:"Returns the first 10 rows after sorting the available rating values in descending order. Exact output depends on the dataset and rating structure."},
-{n:4,t:"basic",title:"Content Added in 2020",desc:"Find all Netflix content added during 2020.",sql:`SELECT title, type, date_added
-FROM netflix_titles
-WHERE date_added IS NOT NULL
-  AND EXTRACT(YEAR FROM TO_DATE(date_added, 'Month DD, YYYY')) = 2020;`,ans:"Returns titles whose date_added falls in calendar year 2020."},
-{n:5,t:"basic",title:"Unique Countries",desc:"Explore distinct countries associated with Netflix content.",sql:`SELECT DISTINCT country
-FROM netflix_titles
+  AND release_year = 2020;`
+},
+
+{
+n:4,
+level:"basic",
+title:"Top 5 Countries by Netflix Content",
+sql:`SELECT
+    country,
+    COUNT(*) AS total_content
+FROM Netflix
 WHERE country IS NOT NULL
-ORDER BY country;`,ans:"Produces a distinct list of non-null country values. Because multiple countries may be stored in one field, further splitting can be used for country-level counts."},
-{n:6,t:"basic",title:"Top 5 Directors",desc:"Find directors with the largest number of associated titles.",sql:`SELECT director, COUNT(*) AS title_count
-FROM netflix_titles
-WHERE director IS NOT NULL
-GROUP BY director
-ORDER BY title_count DESC
-LIMIT 5;`,ans:"Groups titles by director and returns the five directors associated with the most records."},
-{n:7,t:"basic",title:"Longest Movie",desc:"Identify the movie with the greatest duration.",sql:`SELECT title, duration
-FROM netflix_titles
+GROUP BY country
+ORDER BY total_content DESC
+LIMIT 5;`
+},
+
+{
+n:5,
+level:"basic",
+title:"Longest Movie",
+sql:`SELECT
+    title,
+    duration
+FROM Netflix
 WHERE type = 'Movie'
-  AND duration IS NOT NULL
-ORDER BY CAST(SPLIT_PART(duration, ' ', 1) AS INTEGER) DESC
-LIMIT 1;`,ans:"Extracts the numeric minute value from duration and returns the movie with the largest value."},
-{n:8,t:"basic",title:"Content by Rating",desc:"Summarize Netflix content by rating.",sql:`SELECT rating, COUNT(*) AS content_count
-FROM netflix_titles
-WHERE rating IS NOT NULL
-GROUP BY rating
-ORDER BY content_count DESC;`,ans:"Shows how many Netflix titles belong to each rating category, making rating distribution easy to compare."},
-{n:9,t:"advanced",title:"Most Popular Genre",desc:"Find the genre/category with the highest number of content records.",sql:`SELECT genre, COUNT(*) AS content_count
-FROM (
-  SELECT UNNEST(STRING_TO_ARRAY(listed_in, ', ')) AS genre
-  FROM netflix_titles
-  WHERE listed_in IS NOT NULL
-) x
+ORDER BY
+    CAST(SPLIT_PART(duration,' ',1) AS INTEGER) DESC
+LIMIT 1;`
+},
+
+{
+n:6,
+level:"basic",
+title:"Content Added Within Last 5 Years",
+sql:`SELECT
+    title,
+    type,
+    date_added
+FROM Netflix
+WHERE TO_DATE(date_added,'Month DD, YYYY')
+      >= CURRENT_DATE - INTERVAL '5 years';`
+},
+
+{
+n:7,
+level:"basic",
+title:"Content Directed by Rajiv Chilaka",
+sql:`SELECT
+    title,
+    type,
+    director
+FROM Netflix
+WHERE director ILIKE '%Rajiv Chilaka%';`
+},
+
+{
+n:8,
+level:"basic",
+title:"TV Shows With More Than 5 Seasons",
+sql:`SELECT
+    title,
+    duration
+FROM Netflix
+WHERE type = 'TV Show'
+  AND CAST(
+      SPLIT_PART(duration,' ',1)
+      AS INTEGER
+  ) > 5;`
+},
+
+{
+n:9,
+level:"advanced",
+title:"Content Count by Genre",
+sql:`SELECT
+    genre,
+    COUNT(*) AS total_content
+FROM Netflix,
+UNNEST(
+    STRING_TO_ARRAY(listed_in, ', ')
+) AS genre
 GROUP BY genre
-ORDER BY content_count DESC
-LIMIT 1;`,ans:"Splits multi-value genre strings into individual genres, counts them and returns the genre with the highest content count."},
-{n:10,t:"advanced",title:"Top 5 Actors",desc:"Find actors with the most appearances in the dataset.",sql:`SELECT actor, COUNT(*) AS appearances
-FROM (
-  SELECT UNNEST(STRING_TO_ARRAY(cast, ', ')) AS actor
-  FROM netflix_titles
-  WHERE cast IS NOT NULL
-) x
+ORDER BY total_content DESC;`
+},
+
+{
+n:10,
+level:"advanced",
+title:"India Yearly Content Analysis",
+sql:`WITH india_content AS (
+    SELECT
+        release_year,
+        COUNT(*) AS content_count
+    FROM Netflix
+    WHERE country ILIKE '%India%'
+    GROUP BY release_year
+)
+
+SELECT
+    release_year,
+    content_count,
+    ROUND(
+        content_count * 100.0 /
+        SUM(content_count) OVER (),
+        2
+    ) AS percentage_of_india_content
+FROM india_content
+ORDER BY percentage_of_india_content DESC
+LIMIT 5;`
+},
+
+{
+n:11,
+level:"advanced",
+title:"Documentary Movies",
+sql:`SELECT
+    title,
+    type,
+    listed_in
+FROM Netflix
+WHERE type = 'Movie'
+  AND listed_in ILIKE '%Documentaries%';`
+},
+
+{
+n:12,
+level:"advanced",
+title:"Content With Missing Director",
+sql:`SELECT
+    COUNT(*) AS missing_director_count
+FROM Netflix
+WHERE director IS NULL;`
+},
+
+{
+n:13,
+level:"advanced",
+title:"Salman Khan Content Released Within Last 10 Years",
+sql:`SELECT
+    title,
+    type,
+    release_year,
+    cast
+FROM Netflix
+WHERE cast ILIKE '%Salman Khan%'
+  AND release_year >=
+      EXTRACT(YEAR FROM CURRENT_DATE) - 10;`
+},
+
+{
+n:14,
+level:"advanced",
+title:"Top 10 Actors in India-Associated Content",
+sql:`WITH india_cast AS (
+    SELECT
+        UNNEST(
+            STRING_TO_ARRAY(cast, ', ')
+        ) AS actor
+    FROM Netflix
+    WHERE country ILIKE '%India%'
+)
+
+SELECT
+    actor,
+    COUNT(*) AS appearances
+FROM india_cast
+WHERE actor IS NOT NULL
 GROUP BY actor
 ORDER BY appearances DESC
-LIMIT 5;`,ans:"Splits the cast field into individual actor names and counts their appearances across titles."},
-{n:11,t:"advanced",title:"Countries with Most Content",desc:"Calculate the countries associated with the largest number of titles.",sql:`SELECT country_name, COUNT(*) AS content_count
-FROM (
-  SELECT UNNEST(STRING_TO_ARRAY(country, ', ')) AS country_name
-  FROM netflix_titles
-  WHERE country IS NOT NULL
-) x
-GROUP BY country_name
-ORDER BY content_count DESC
-LIMIT 10;`,ans:"Splits multi-country values and produces a country-level content count, useful for geographical analysis."},
-{n:12,t:"advanced",title:"Average Rating by Genre",desc:"Compare average numeric ratings by genre when numeric rating data is available.",sql:`SELECT genre,
-       AVG(rating_value) AS avg_rating
-FROM genre_rating_analysis
-GROUP BY genre
-ORDER BY avg_rating DESC;`,ans:"Compares average rating values by genre. This query assumes a prepared numeric rating_value field; Netflix age ratings such as TV-MA are categorical, not numeric."},
-{n:13,t:"advanced",title:"Yearly Release Trend",desc:"Count Netflix content by release year.",sql:`SELECT release_year, COUNT(*) AS content_count
-FROM netflix_titles
-GROUP BY release_year
-ORDER BY release_year;`,ans:"Provides a year-by-year content count that can be visualized as a release trend."},
-{n:14,t:"advanced",title:"Highest-Volume Content Year",desc:"Find the year with the highest number of titles.",sql:`SELECT release_year, COUNT(*) AS content_count
-FROM netflix_titles
-GROUP BY release_year
-ORDER BY content_count DESC
-LIMIT 1;`,ans:"Returns the release year containing the largest number of records in the dataset."},
-{n:15,t:"advanced",title:"Monthly Content Added",desc:"Analyze how many titles were added in each calendar month.",sql:`SELECT EXTRACT(MONTH FROM TO_DATE(date_added, 'Month DD, YYYY')) AS month,
-       COUNT(*) AS titles_added
-FROM netflix_titles
-WHERE date_added IS NOT NULL
-GROUP BY month
-ORDER BY month;`,ans:"Aggregates titles by the month in which they were added, helping reveal seasonal or operational publishing patterns."}
+LIMIT 10;`
+},
+
+{
+n:15,
+level:"advanced",
+title:"Description Classification",
+sql:`SELECT
+    title,
+    CASE
+        WHEN description ILIKE '%kill%'
+          OR description ILIKE '%violence%'
+        THEN 'Bad'
+        ELSE 'Good'
+    END AS category
+FROM Netflix;`
+}
+
 ];
 
-const grid=document.getElementById('questionGrid');
-function render(){
- const term=document.getElementById('qSearch').value.toLowerCase();
- const type=document.getElementById('qType').value;
- grid.innerHTML=questions.filter(q=>
-   (type==='all'||q.t===type) &&
-   (q.title.toLowerCase().includes(term)||q.desc.toLowerCase().includes(term))
- ).map(q=>`<article class="qcard" onclick="openQuestion(${q.n})">
-   <span class="qnum">${String(q.n).padStart(2,'0')}</span>
-   <h4>${q.title}</h4><p>${q.desc}</p>
- </article>`).join('');
+
+/* =========================================================
+   RENDER QUESTIONS
+========================================================= */
+
+const questionGrid=
+    document.getElementById("questionGrid");
+
+function renderQuestions(){
+
+    const search=
+        document.getElementById("questionSearch")
+        .value
+        .toLowerCase();
+
+    const active=
+        document.querySelector(".filter-btn.active")
+        .dataset.filter;
+
+    questionGrid.innerHTML="";
+
+    questions
+
+    .filter(q=>
+        active==="all" || q.level===active
+    )
+
+    .filter(q=>
+        q.title.toLowerCase().includes(search)
+    )
+
+    .forEach(q=>{
+
+        const card=document.createElement("div");
+
+        card.className="question";
+
+        card.innerHTML=`
+
+            <div class="question-number">
+                QUESTION ${q.n} • ${q.level.toUpperCase()}
+            </div>
+
+            <h3>${q.title}</h3>
+
+            <p>
+                Click to view PostgreSQL solution →
+            </p>
+
+        `;
+
+        card.onclick=()=>openModal(q);
+
+        questionGrid.appendChild(card);
+
+    });
+
 }
-function openQuestion(n){
- const q=questions.find(x=>x.n===n);
- document.getElementById('modalType').textContent=q.t==='basic'?'Basic SQL Question':'Advanced SQL Question';
- document.getElementById('modalTitle').textContent=q.title;
- document.getElementById('modalDesc').textContent=q.desc;
- document.getElementById('modalSql').textContent=q.sql;
- document.getElementById('modalAnswer').textContent=q.ans;
- document.getElementById('modal').classList.add('show');
-}
-function closeModal(){document.getElementById('modal').classList.remove('show')}
-document.getElementById('qSearch').addEventListener('input',render);
-document.getElementById('qType').addEventListener('change',render);
-document.getElementById('globalSearch').addEventListener('input',e=>{
- const v=e.target.value.trim().toLowerCase();
- if(!v)return;
- const q=questions.find(x=>(x.title+x.desc+x.sql).toLowerCase().includes(v));
- if(q){document.getElementById('questions').scrollIntoView({behavior:'smooth'});document.getElementById('qSearch').value=v;render();}
+
+
+/* =========================================================
+   QUESTION FILTERS
+========================================================= */
+
+document.querySelectorAll(".filter-btn")
+.forEach(btn=>{
+
+    btn.addEventListener("click",()=>{
+
+        document
+        .querySelectorAll(".filter-btn")
+        .forEach(b=>b.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        renderQuestions();
+
+    });
+
 });
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-render();
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+document
+.getElementById("questionSearch")
+.addEventListener(
+    "input",
+    renderQuestions
+);
+
+
+/* =========================================================
+   GLOBAL SEARCH
+========================================================= */
+
+document
+.getElementById("globalSearch")
+.addEventListener("input",function(){
+
+    const value=this.value.toLowerCase();
+
+    if(!value){
+        return;
+    }
+
+    const match=questions.find(q=>
+        q.title.toLowerCase().includes(value)
+    );
+
+    if(match){
+
+        document
+        .getElementById("questions")
+        .scrollIntoView({
+            behavior:"smooth"
+        });
+
+        document
+        .getElementById("questionSearch")
+        .value=value;
+
+        renderQuestions();
+
+    }
+
+});
+
+
+/* =========================================================
+   SQL MODAL
+========================================================= */
+
+function openModal(q){
+
+    document
+    .getElementById("modalNumber")
+    .textContent=
+        `QUESTION ${q.n} • ${q.level.toUpperCase()}`;
+
+    document
+    .getElementById("modalTitle")
+    .textContent=q.title;
+
+    document
+    .getElementById("modalSQL")
+    .textContent=q.sql;
+
+    document
+    .getElementById("sqlModal")
+    .classList.add("active");
+
+}
+
+function closeModal(){
+
+    document
+    .getElementById("sqlModal")
+    .classList.remove("active");
+
+}
+
+document
+.getElementById("sqlModal")
+.addEventListener("click",function(e){
+
+    if(e.target===this){
+        closeModal();
+    }
+
+});
+
+
+/* =========================================================
+   INITIAL RENDER
+========================================================= */
+
+renderQuestions();
+
 </script>
+
 </body>
 </html>
