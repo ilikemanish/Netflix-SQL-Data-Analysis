@@ -4,6 +4,12 @@
 
 # 🎬 Netflix Data Analysis — SQL Project
 
+<p align="center">
+  <a href="https://ilikemanish.github.io/Netflix-SQL-Data-Analysis/">
+    <img src="https://img.shields.io/badge/🚀%20LIVE%20INTERACTIVE%20PREVIEW-E50914?style=for-the-badge&logo=netflix&logoColor=white" alt="Live Interactive Preview">
+  </a>
+</p>
+
 ### 📊 15 Business Problems & SQL Solutions using PostgreSQL
 
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
